@@ -1,0 +1,33 @@
+html,body { height: 100%; }
+body {
+  background: url(../img/bgImg.jpg) no-repeat center center;
+  background-attachment: fixed;
+}
+/* h1 { text-indent: -9999px;} */
+.jumbotron { background: none; }
+.container {
+  height: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
+  box-shadow: 0 0 5px rgba(0,0,0,.5);
+  background: rgba(255,255,255,.8);
+  display: flex;
+  flex-direction: column;
+}
+.nav { padding-left: 30px; font-weight: bolder; }
+.main { padding: 15px 0; flex: 1; }
+header, footer { flex:0 0 50px; }
+footer {
+  border-top: 1px solid #ddd;
+  width: 100%;
+  text-align: center;
+  bottom: 0;
+}
+footer p {
+  padding: 10px 0;
+}
+.row {
+  margin: 0;
+}
