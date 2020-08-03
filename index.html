@@ -4,10 +4,30 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>我的github站点</title>
+	<style>
+		* { margin: 0; padding: 0; }
+		html,body { height: 100%; }
+		body {
+			background: url(img/bgImg.jpg) no-repeat center center;
+			background-attachment: fixed;
+		}
+		.container {
+			width: 1000px;
+			max-width: 1000px;
+			height: 100%;
+			margin: 0 auto;
+			padding: 20px;
+			box-sizing: border-box;
+			box-shadow: 0 0 5px rgba(0,0,0,.5);
+			background: rgba(255,255,255,.8);
+		}
+	</style>
 </head>
 <body>
-	<h2>Hello World!</h2>
-	<p>hello, 欢迎访问我的github站点！</p>
-	<p><a href="gitTest/index.html">另一个页面</a></p>
-</body>
+	<div class="container">
+		<h1>Hello World!</h1>
+		<p>hello, 欢迎访问我的github站点！</p>
+		<p><a href="gitTest/index.html">另一个页面</a></p>
+	</body>		
+	</div>
 </html>
