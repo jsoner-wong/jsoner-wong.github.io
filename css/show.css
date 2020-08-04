@@ -1,0 +1,6 @@
+.media .media-object {
+  width: 100px;
+}
+[class^=col-] {
+  margin: 10px 0;
+}

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<style>
+		  body {
+		    overflow: hidden;
+		  }
+		  #cvs {
+		    box-shadow: 0 0 20px #333;
+		    display: block;
+		    margin: 20px auto 0;
+		  }
+		  #source { visibility: hidden; }
+		  img { visibility: hidden; position: absolute; }
+		  #gameover {
+		    width: 320px; height: 568px;
+		    background: rgba(0,0,0,0.3);
+		    position: absolute;
+		    left: 50%; top: 20px;
+		    margin-left: -160px;
+		    display: none;
+		  }
+		  #gameover div {
+		    width: 150px; height: 80px;
+		    margin: 150px auto 0;
+		    background: rgba(211,211,211,1);
+		    border: 1px solid #333;
+		    border-radius: 10px;
+		    text-align: center;
+		    font-weight: bolder;
+		    padding: 20px 30px;
+		    font-size: 16px;
+		  }
+		</style>
+	</head>
+	<body>
+	  
+		<canvas id="cvs" width="320" height="568"></canvas>
+		<div id="gameover">
+		  <div>
+		    <p>游戏结束</p>
+		  </div>
+		</div>
+		<div id="source">
+		  <audio src="audio/bullet.mp3" autoplay="autoplay"></audio>
+		  <audio src="audio/enemy1_down.mp3"></audio>
+		  <audio src="audio/enemy3_down.mp3"></audio>
+      <audio src="audio/enemy2_down.mp3"></audio>
+      <audio src="audio/enemy2_out.mp3"></audio>
+		  <audio src="audio/game_music.mp3" autoplay="autoplay" loop="loop"></audio>
+		  <audio src="audio/game_over.mp3"></audio>
+		  <img src="img/background.png"/>
+		  <img src="img/bomb.png"/>
+		  <img src="img/bullet1.png"/>
+		  <img src="img/bullet2.png"/>
+		  <img src="img/enemy1.png"/>
+		  <img src="img/enemy2.png"/>
+		  <img src="img/enemy3.png"/>
+		  <img src="img/herofly.png"/>
+		  <img src="img/loading.gif"/>
+		  <img src="img/prop.png"/>
+		</div>
+		<script>
+		  var canvas = document.getElementById('cvs');
+		  var audios = document.getElementById('source').getElementsByTagName('audio');
+		  var imgs = document.getElementById('source').getElementsByTagName('img');
+		  var gameover = document.getElementById('gameover');
+		  var tips = gameover.getElementsByTagName('div')[0];
+		  var cvs = canvas.getContext('2d');
+		  var bgImg = new Image();
+		  var y = 0, flyPos = 0, timer = null;
+		  var bullet = [], key = 0, speed = 5, scores = 0;
+		  var heroFly = new Factory(30,460,66,82);
+		  var enemyImg = [imgs[4],imgs[6],imgs[5]];
+		  var enemyArr = [], count = 0, lastTime = new Date();
+		  var bomb = null, buff = null,bullet_speed = 1,bullet_type = 1;
+
+      document.onkeydown = function(ev){
+        var code = ev.keyCode;
+        this[code] = true;
+        if( code == 32 && bomb ) clearEnemy();
+        if(code == 37||code == 38||code == 39||code == 40){
+          key = code;
+        }
+      };
+    
+      document.onkeyup = function(ev){
+        var code = ev.keyCode;
+        this[code] = false;
+        if(!this[code]&&!this[code]&&!this[code]&&!this[code]){
+          key = 0;
+        }
+      };
+	  
+	    timer = setInterval(function(){
+	      
+	      count ++;
+	      
+        switch(key){
+          case 37:
+           heroFly.x -= speed;
+           if( heroFly.x < 0 ) heroFly.x = 0;
+           break;
+          case 38:
+           heroFly.y -= speed;
+           if( heroFly.y < 0 ) heroFly.y = 0;
+           break;
+          case 39:
+           heroFly.x += speed;
+           if( heroFly.x > canvas.width - 66 ) heroFly.x = canvas.width - 66;
+           break;
+          case 40:
+           heroFly.y += speed;
+           if( heroFly.y > canvas.height - 82 ) heroFly.y = canvas.height - 82;
+           break;
+        }	      
+	      
+        cvs.beginPath();
+        cvs.save();
+        cvs.clearRect(0,0,canvas.width,canvas.height);
+        y += 2;
+        if( y >= canvas.height ) y = 0;
+        cvs.translate(0,y);
+        cvs.drawImage(imgs[0],0,0);                 
+        cvs.drawImage(imgs[0],0,-canvas.height+2); 
+        cvs.restore();
+        drawHeroFly();
+        if( count % (10/bullet_speed) == 0 )createBullet();
+        if( count % 30 == 0 )createEnemy();
+        if( bomb ) bomb.draw(imgs[1],bomb.x,bomb.y);
+        if( buff ) drawBuff();
+        drawBullet();
+        drawEnemy();
+	    },20);
+	    
+//	    createBuff();
+      randBuff();
+      
+      function randBuff(){
+        setTimeout(createBuff,getRand(5000,8000,true));
+      }
+      
+		  function drawHeroFly(){
+		    var sound = audios[6].cloneNode();
+		    flyPos ++;
+		    if( heroFly.d ){
+          flyPos %= 5;
+		    }else{
+          flyPos %= 2;
+		    }
+		    checkHeroDie();
+		    heroFly.draw(imgs[7],flyPos*heroFly.w,0,heroFly.w,heroFly.h,heroFly.x,heroFly.y,heroFly.w,heroFly.h);
+		    if( flyPos == 4 ){
+		      sound.play();
+		      audios[5].pause();
+		      clearInterval(timer);
+		      tips.innerHTML += '<p>你的分数：'+scores+'</p>';
+		      gameover.style.display = 'block';
+		    }
+		  }
+		  
+		  function Factory(x,y,w,h,i){
+		    this.x = x;
+		    this.y = y;
+		    this.w = w;
+		    this.h = h;
+		    this.i = i;
+		  }
+		  Factory.prototype.draw = function(){
+        cvs.beginPath();
+        cvs.drawImage.apply(cvs,arguments);
+		  };
+		  
+		  function drawBullet(){
+		    for(var i=0; i<bullet.length; i++){
+		      bullet[i].y -= 7;
+		      if(bullet[i].y < 0 || bullet[i].d ){
+		        bullet.splice(i,1);
+		        continue;
+		      }
+		      if( bullet_type == 1 ){
+		        bullet[i].draw(imgs[3],bullet[i].x-21,bullet[i].y);  
+		      }else{
+		        bullet[i].draw(imgs[2],bullet[i].x,bullet[i].y);        
+		      }
+
+		    }
+		  }
+		  
+		  function createEnemy(){
+		    var index = getRand(0,100),w,h,x,y;
+		    
+		    if( (new Date() - lastTime < 5000 ) && index != 0 ){
+		      createEnemy();
+		      return;
+		    }
+		      
+		    switch(index){
+          case 0:
+            w = 38;
+            h = 34;
+            break;
+          case 1:
+            w = 46;
+            h = 64;
+            break;
+          case 2:
+            w = 110;
+            h = 164;
+            break;
+		    }
+		    x = getRand(10,320-w,true);
+		    y = -h;
+		    
+		    var enemy = new Factory(x,y,w,h,index);
+		    enemy.l = enemyImg[index].width / w - 1;
+		    enemy.b = 0;
+		    enemy.life = index*3;
+		    enemy.index = index;
+		    enemy.speed = getRand(4,7,true);
+		    
+		    enemyArr.push(enemy);
+		  }
+		  
+		  function drawEnemy(){
+        var sound;
+		    for(var i=0; i<enemyArr.length; i++){
+		      if( enemyArr[i].d ){
+		        enemyArr[i].b += 1;
+		      }else{
+            enemyArr[i].y += enemyArr[i].speed - Math.floor(enemyArr[i].index*1.5);
+		      }
+		      checkEnemyDie(enemyArr[i]);
+		      enemyArr[i].draw(
+		        enemyImg[enemyArr[i].i],
+		        enemyArr[i].b*enemyArr[i].w,
+		        0,
+		        enemyArr[i].w,
+		        enemyArr[i].h,
+		        enemyArr[i].x,
+		        enemyArr[i].y,
+		        enemyArr[i].w,
+		        enemyArr[i].h
+		      );
+
+		      if( enemyArr[i].b == enemyArr[i].l || enemyArr[i].y > canvas.height ){
+            if(enemyArr[i].b == enemyArr[i].l){
+              sound = audios[enemyArr[i].index+1].cloneNode();
+              sound.play();
+              scores += 100*(enemyArr[i].index+1);
+            }
+		        enemyArr.splice(i,1);
+		        i --;
+		      }
+		    }
+		  }
+		  
+		  function createBullet(){
+		    var x = heroFly.x, y = heroFly.y,w = 6,h = 14;
+		    var sound = audios[0].cloneNode();
+		    if( bullet_type == 1 ){
+		      w = 48;
+		    }
+		    bullet.unshift(new Factory(x+32, y-2,6,14));
+		    sound.play();
+		  }
+		  
+		  function loadImg(src,callback){
+		    var oImg = new Image();
+		    oImg.onload = function(){
+		      callback && callback.call(this,this);
+		    };
+		    oImg.src = src;
+		    return oImg;
+		  };
+
+      function getRand(x,y,p){
+        var num = Math.round(Math.random()*(y-x)+x);      
+        if(p) return num;
+        if( num < 45 )return 0;
+        if( num > 75 )return 2;
+        return 1;
+      };
+      
+      function checkEnemyDie(obj){
+        for(var i=bullet.length-1; i>=0; i--){
+          if( isCrash(obj,bullet[i]) ){
+            bullet[i].d = true;
+            obj.life -= !bullet_type ? 1 : 1*bullet_type;
+            if( obj.life <=0 )obj.d = true;
+          }
+        }  
+      }
+      
+      function checkHeroDie(){
+        for(var i=0; i<enemyArr.length; i++){
+          if( isCrash(heroFly,enemyArr[i]) ){
+            heroFly.d = true;
+          }
+        }          
+      }
+//    createBomb();
+      function createBomb(){
+        if( bomb )return;
+        bomb = new Factory(270,530,42,36);
+        canvas.onclick = function(ev){
+          if( ev.offsetX > 270 && ev.offsetX < 312 && ev.offsetY > 530 && ev.offsetY < 566){
+            clearEnemy();
+          }
+          console.log(bomb);
+        };
+      }
+      function clearEnemy(){
+        for(var i=0; i<enemyArr.length; i++){
+          enemyArr[i].life = 0;
+          enemyArr[i].d = true;
+          scores += enemyArr[i].index*100;
+        }
+        canvas.onclick = null;
+        bomb = null;
+        buff = null;
+      }
+      
+      function drawBuff(){
+        buff.y += 3;
+        if( isCrash(buff,heroFly) ){
+          bullet_speed = buff.type == 2 ? 2.5 : 1;
+          bullet_type = buff.type == 1 ? 1 : 0;
+          if( !buff.type ) createBomb();
+          setTimeout(function(){
+            bullet_speed = 1;
+            bullet_type = 0;
+          },10000); 
+          buff = null;
+          return;
+        }
+        buff.draw(imgs[9],buff.type*39,0,39,68,buff.x,buff.y,39,68);
+      }
+      
+      function createBuff(){
+        var arr = [0,39,78], i = getRand(0,100),
+          x = getRand(60,260,true), y = -70, w = arr[i], h = 68;
+        if( buff )return;
+        buff = new Factory(x,y,w,h);
+        buff.type = i;
+      }
+      
+      function isCrash(obj1,obj2){
+        var L1 = obj1.x;
+        var R1 = obj1.x + obj1.w;
+        var T1 = obj1.y;
+        var B1 = obj1.y + obj1.h;
+        
+        var L2 = obj2.x;
+        var R2 = obj2.x + obj2.w;
+        var T2 = obj2.y;
+        var B2 = obj2.y + obj2.h;
+        
+        if( L1 > R2 || R1 < L2 || T1 > B2 || B1 < T2 )return false;
+        return true;
+      }
+		  
+		  
+		</script>
+	</body>
+</html>

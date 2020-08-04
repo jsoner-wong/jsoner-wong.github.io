@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title> 锅打灰太狼 </title>
+	<style type="text/css">
+		#gameWrap {
+			width: 320px; height: 480px;
+			box-shadow: 0 0 10px #333;
+			margin: 160px auto 0;
+			background: url(img/game_bg.jpg);
+			transform: scale(1.5);
+		}
+
+		#wolfs div {
+			width: 108px; height: 101px;
+			position: absolute; left: 18px; top: 52px;			
+		}
+
+		.grayWolf {
+			background: url(img/grayWolf.png);
+			background-position:0px bottom;
+		}
+
+		.redWolf {
+			background: url(img/redWolf.png);
+			background-position:0px bottom;
+		}
+
+		#score {
+			height: 45px; line-height: 45px;
+			padding-left: 80px;
+			color: #fff; font-size: 18px;
+			text-shadow: 0 0 2px #000;
+		}
+
+		#progress {
+			width: 180px; height: 16px;
+			position: absolute; left: 63px; top: 66px;
+			background: url(img/progress.png) no-repeat;
+			background-size: 180px 16px;
+			border-radius: 15px;
+		}
+
+		#menu,#gameOver {
+			position: absolute; left: 0; right: 0; bottom: 32%;
+			text-align: center; font-size: 24px; font-weight: bold;
+			color: #f60; text-shadow: 0 0 5px #ff0;
+		}
+		#gameOver {
+			width: 100%; height: 100%; padding-top: 60%; box-sizing: border-box; bottom: 0; z-index: 2; background: rgba(0,0,0,0.3); display: none;
+		}
+		#menu p { cursor: pointer; }
+
+		#wolfs {
+			position: absolute; left:0px; top: 108px;
+		}
+	</style>
+</head>
+<body>
+	
+	<!-- <div class="grayWolf"></div> -->
+
+	<div id="gameWrap">
+		<div id="score">0</div>
+		<div id="progress"></div>
+		<div id="wolfs">
+			<!-- <div class="grayWolf"></div> -->
+		</div>
+		<div id="menu">
+			<p id="start">开始游戏</p>
+			<p id="info">游戏说明</p>
+		</div>
+		<div id="gameOver">
+			<p>游戏结束</p>
+			<p></p>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		// var wolf = document.getElementsByClassName("grayWolf")[0];
+		var wolfBox = document.getElementById('wolfs');
+		var scoreEle = document.getElementById('score');
+		var overLayer = document.getElementById('gameOver');
+		var progress = document.getElementById('progress');
+		var start = document.getElementById('start');
+		var timer = null,timer2 = null, score = 0, iTime = 180,scale = 0.2;
+		var pos = [
+			{x: 18,y: 52},
+			{x: 98,y: 8},
+			{x: 186,y: 35},
+			{x: 15,y: 114},
+			{x: 104,y: 84},
+			{x: 200,y: 104},
+			{x: 32,y: 186},
+			{x: 120,y: 166},
+			{x: 208,y: 188}
+		];
+
+		start.onclick = function(){
+			this.parentNode.style.display = "none";
+			gameStart();
+		}
+
+		function gameStart(){
+			timer = setInterval(function(){
+				createWolf();
+			},2000);
+
+			timer2 = setInterval(function(){
+				iTime -= 1*scale;
+				progress.style.backgroundSize = iTime + 'px 16px';
+
+				if( iTime <= 0 ) gameOver()
+			},30);			
+		}
+
+		// wolfUp();
+
+		function createWolf(){
+			var oDiv = document.createElement('div');
+			var num = rand(0,100);
+			oDiv.className = num > 85 ? "redWolf":"grayWolf";
+			oDiv.type = num > 85 ? "redWolf" : "grayWolf";
+			oDiv.clicked = false;
+
+			oDiv.onclick = function(ev){
+				this.clicked = true;
+				clearInterval( this.timer );
+
+				if( this.type == "grayWolf" ) score += 10;
+				if( this.type == "redWolf" ) score -= 10;
+
+				scoreEle.innerHTML = score;
+
+				hitWolf(this);
+			};
+
+			wolfBox.appendChild(oDiv);
+			wolfPlay(oDiv);
+		}
+
+		function rand(x,y){
+			return Math.round(Math.random()*(y-x)+x);
+		}
+
+		function hitWolf(wolf){
+			var i = 6;
+			wolf.timer = setInterval(function(){
+
+				wolf.style.backgroundPosition = -108*i + 'px';
+				i ++;
+
+				if( i == 10 ){
+					clearInterval( wolf.timer );
+					wolfBox.removeChild(wolf);
+				}
+
+			},100);	
+		}
+
+		function wolfPlay(wolf){
+			var index = rand(0,pos.length-1);
+			var x = pos[index].x, y = pos[index].y;
+			var n = 1, i = 0;
+
+			wolf.style.left = x + 'px';
+			wolf.style.top = y + 'px';
+
+			wolf.timer = setInterval(function(){
+
+				wolf.style.backgroundPosition = -108*i + 'px';
+				i += n;
+
+				if( i == 6 ){ n = -1; i-=1; }
+
+				if( i <0 ){
+					clearInterval( wolf.timer );
+					if( wolf.type == "redWolf" ){
+						score += 10;
+						scoreEle.innerHTML = score;
+					}
+					wolfBox.removeChild(wolf);
+				}
+
+			},100);			
+		}
+
+		function gameOver(){
+			var oScore = overLayer.children[1];
+			overLayer.style.display = "block";
+			oScore.innerHTML = "得分： " + score;
+
+			clearInterval(timer);
+			clearInterval(timer2);
+			console.log( oScore );
+
+		}
+
+
+	</script>
+
+</body>
+</html>
+
+<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script>
+var popData = {
+  title: "游戏介绍",
+  content: `
+    <div>
+			<p>1,正如简介中所说，这就是一个课堂案例</p>
+			<p>2,效果简单，核心是定时器知识</p>
+			<p>3,游戏说明是作为课后的扩展留给学员的，所以这里并没有代码实现</p>
+    </div>
+  `
+} 
+$('<div id="pops">').load('/html/pops.html').appendTo('body');
+</script>

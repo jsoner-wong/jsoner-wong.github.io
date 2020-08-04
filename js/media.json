@@ -1,0 +1,68 @@
+[
+  {
+    "title": "2048小游戏",
+    "url" : "../exams/2048/index.html",
+    "imgSrc" : "../images/2048.png",
+    "desc": "曾经火爆的小游戏，当时我也是很着迷，上下班在地铁上玩得不亦乐乎，玩着玩着，就想自己也动手写一个。" 
+  },
+  {
+    "title": "imqq官网",
+    "url" : "../exams/imqq/index.html",
+    "imgSrc" : "../images/imqq.png",
+    "desc": "imqq官网，当时觉得中间那个滚动切换图片的效果很神奇，于是模仿着写了这个页面" 
+  },
+  {
+    "title": "京东商品放大镜",
+    "url" : "../exams/jd/index.html",
+    "imgSrc" : "../images/jd.png",
+    "desc": "无意中发现京东的放大镜不是通过改变left/top实现，好奇地研究了一下实现原理。" 
+  },
+  {
+    "title": "windows经典 -- 扫雷",
+    "url" : "../exams/minesweeper/index.html",
+    "imgSrc" : "../images/pailei.png",
+    "desc": "windows中的经典游戏，学前端时看到有同学用js在写，所以自己也动手试着写了一下。" 
+  },
+  {
+    "title": "天猫双11狂欢节",
+    "url" : "../exams/tmall/index.html",
+    "imgSrc" : "../images/tmall.png",
+    "desc": "2016年的天猫双11狂欢节活动页面，采用canvas实现，创造了三天950万的销售神话。" 
+  },
+  {
+    "title": "微信经典飞机大战",
+    "url" : "../exams/weixinHeroFly/index.html",
+    "imgSrc" : "../images/heroFly.png",
+    "desc": "微信打飞机，相信你一定玩过，刚出来那会儿，办公室里是此起彼伏的爆炸声。素材来自同事，代码纯手工。" 
+  },
+  {
+    "title": "锅打灰太狼",
+    "url" : "../exams/wolf/index.html",
+    "imgSrc" : "../images/wolf.png",
+    "desc": "这是当时的一个教学用例，素材是同事给的，写这个只是为了拿来当作教学素材，没有怎么处理兼容问题。" 
+  },
+  {
+    "title": "贪吃蛇canvas版",
+    "url" : "../exams/snake/index.html",
+    "imgSrc" : "../images/snake.png",
+    "desc": "手机上的经典游戏，在学习canvas时，为了练习而写的，没有太多功能。" 
+  },
+  {
+    "title": "数钱游戏",
+    "url" : "../exams/countMoney/index.html",
+    "imgSrc" : "../images/countMoney.png",
+    "desc": "这也是当时的一个教学用例，素材是公司提供的，用户名部分使用了php，因为不影响游戏本身，这里没有作处理。" 
+  },
+  {
+    "title": "腾讯小小Q",
+    "url" : "../exams/qrobot/index.html",
+    "imgSrc" : "../images/qrobot.png",
+    "desc": "小小Q机器人外观3D展示，当时坐旁边的女同事看到官网这效果很好玩，于是我也仿写了一个，你们懂的。" 
+  },
+  {
+    "title": "躲避方块",
+    "url" : "../exams/fangkuai/index.html",
+    "imgSrc" : "../images/fangkuai.png",
+    "desc": "界面很丑，效果很一般，就是为了练习拖拽和碰撞检测自己瞎琢磨着写的一个小效果，如有雷同，实属巧合。" 
+  }
+]

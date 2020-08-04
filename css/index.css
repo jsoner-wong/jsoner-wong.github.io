@@ -4,6 +4,8 @@ body {
   background-attachment: fixed;
 }
 /* h1 { text-indent: -9999px;} */
+h2 { font-size: 26px; }
+h2 blockquote { border-color: #999; }
 .jumbotron { background: none; }
 .container {
   height: 100%;
@@ -17,7 +19,7 @@ body {
   flex-direction: column;
 }
 .nav { padding-left: 30px; font-weight: bolder; }
-.main { padding: 15px 0; flex: 1; }
+.main { padding: 15px 0; flex: 1; overflow: auto; margin: 20px 10px; }
 header, footer { flex:0 0 50px; }
 footer {
   border-top: 1px solid #ddd;

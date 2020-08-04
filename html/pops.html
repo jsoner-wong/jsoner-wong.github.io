@@ -1,0 +1,53 @@
+<div id="popWrapTag">
+  <div class="header pd20">
+    <h2><span>{{title}}</span><a href="http://www.jsoner.com/">返回主站</a></h2>
+  </div>
+  <div class="body pd20">
+    <div>{{content}}</div>
+    <p class="close"><a href="###" id="btn">关闭弹窗</a></p>
+  </div>
+</div>
+
+<style>
+  h2,p { margin: 0; padding: 0; }
+  #popWrapTag {
+    position: fixed;
+    border: 1px solid #333;
+    background: #fff;
+    overflow: hidden;
+    left: 0px;
+    bottom: 0px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    max-width: 280px;
+    font-size: 14px;
+    z-index: 99999;
+  }
+  .header {
+    border-bottom: 1px solid #ddd;
+  }
+  .header h2 {
+    font-size: 16px; font-weight: bold; overflow: hidden;
+  }
+  .header span { float: left; }
+  .header a { float: right; color: lightskyblue; text-decoration: none; }
+  .pd20 { padding: 10px 20px; }
+  #popWrapTag .close { text-align: right;}
+</style>
+
+<script>
+  var popWrap = document.getElementById("popWrapTag");
+  var template = popWrap.innerHTML;
+  var reTpl = /{{([^}}]*)}}/g;
+  var popData = popData || {title: "初始标题", content: "初始内容"};
+  var sHtml = template.replace(reTpl, (a,b,c,d)=>{
+    return popData[b];
+  })
+
+  // console.log(sHtml);
+  popWrap.innerHTML = sHtml;
+
+  var closeBtn = document.getElementById("btn");
+  closeBtn.onclick = ()=>popWrap.style.display = "none";
+  
+  </script>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" type="text/css" href="css/index.css">
+</head>
+<body>
+	<div id="wrap">
+		<canvas id="cvs" width="1280" height="600"></canvas>
+	</div>
+	<script src="js/sources.js"></script>
+	<script src="js/common.js"></script>
+	<script src="js/index.js"></script>
+</body>
+</html>
+
+<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script>
+var popData = {
+  title: "效果介绍",
+  content: `
+    <div>
+			<p>1,采用原生canvas编写实现</p>
+			<p>2,因为效果简单，所以并使用面向对象方式编写</p>
+			<p>3,所有动画都是使用同一个定时器控制实现的</p>
+			<p>4,动画快慢通过一个帧计数器来辅助控制</p>
+			<p>5,数据采用json对象存储</p>
+			<p>6,所有商家和动画模型都是通过数据产生，可以随意添加或移除</p>
+			<p>7,请在PC端，并使用非IE浏览器浏览。</p>
+			<p>8,该效果是模仿的2016天猫双11专题页面。</p>
+			<p>9,该页面只在天猫上线了三天就下线了，而我是在第二天晚上看到该页面，第三天才开始模仿编写。</p>
+			<p>10,由于并未预料到下线会这么快，导致素材并未及时全部保存，非常遗憾地让这个效果成了半成品。</p>
+			<p>12,天猫官网效果中，鼠标移入每一个商家图标，都会有弹出层，有商家推广介绍，并可以导航到商家的店铺。</p>
+			<p>11,该页面虽然只上线了三天，但据说为天猫带来了950万的收入！</p>
+    </div>
+  `
+} 
+$('<div id="pops">').load('/html/pops.html').appendTo('body');
+</script>

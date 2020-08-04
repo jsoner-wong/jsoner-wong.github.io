@@ -6,6 +6,8 @@
 	<title>我的github站点</title>
 	<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
 	<link href="/css/index.css" rel="stylesheet">
+	<link href="/css/show.css" rel="stylesheet">
+	<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
 	<!-- <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script> -->
 </head>
 <body>
@@ -18,7 +20,7 @@
 			</div>
 			<ul class="nav nav-tabs">
 				<li role="presentation"><a href="/"> 首 页 </a></li>
-				<li role="presentation" class="active"><a href="/html/show.html"> 作品展示 </a></li>
+				<li role="presentation" class="active"><a href="/html/show.html"> 练习测试 </a></li>
 				<li role="presentation"><a href="http://y.jsoner.com:3000/"> 音乐小栈 </a></li>
 				<li role="presentation"><a href="/html/about.html"> 关于我 </a></li>
 			</ul>
@@ -26,13 +28,22 @@
 
 		<div class="main">
 
-			<div class="row">
-				<div class="panel panel-info">
-					<div class="panel-heading">Panel heading without title</div>
-					<div class="panel-body">
-						Panel content
-					</div>
-				</div>
+			<div class="row" id="list">
+
+				<!-- <div class="col-md-6 col-x-6">
+					<div class="media">
+						<div class="media-left media-middle">
+							<a href="#">
+								<img class="media-object" src="../images/2048.PNG" alt="2048小游戏">
+							</a>
+						</div>
+						<div class="media-body">
+							<h4 class="media-heading">2048小游戏</h4>
+							<p>曾经火爆的小游戏。</p>
+						</div>
+					</div>					
+				</div>-->
+
 			</div>
 		</div>
 		
@@ -40,5 +51,43 @@
 			<p> 本站只作个人学习用途，网站相关代码如有侵权请联系邮件： 253071062#qq.com </p>
 		</footer>
 	</div>
+
+<script>
+	$(()=>{
+
+		$.ajax({
+			url: '../js/media.json',
+			dataType: 'json',
+			success (data) {
+
+				$.each(data, function(i,v){
+
+					let template = `
+						<div class="col-md-6 col-xs-12 col-lg-4">
+							<div class="media">
+								<div class="media-left media-middle">
+									<a href="${v.url}">
+										<img class="media-object" src="${v.imgSrc}" alt="${v.title}">
+									</a>
+								</div>
+								<div class="media-body">
+									<h4 class="media-heading">${v.title}</h4>
+									<p>${v.desc}</p>
+									<p><a href="${v.url}" target="_blank">案例效果</a></p>
+								</div>
+							</div>					
+						</div>				
+					`;
+					
+					// console.log(template);
+					$('#list').append(template);
+
+				});
+				
+			}
+		})
+
+	});
+</script>
 </body>
 </html>

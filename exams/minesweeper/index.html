@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title> windows 排雷 </title>
+  <meta charset = 'utf-8' />
+	<style>
+		body { margin: 0; }
+
+		.box{width:426px; position: absolute;}
+		.top,.top *{background:url(img/icons.png) no-repeat;height:28px;}
+		.top div{background-position:right -56px;}
+		.top p{margin:0 8px 0 52px;background-position:0 -28px;background-repeat:repeat-x;}
+		.main-1{border-left:1px solid #0831d9;border-bottom:1px solid #00138c;border-right:1px solid #00138c;position:relative;}
+		.main-2{border-left:1px solid #166aee;border-bottom:1px solid #001ea0;border-right:1px solid #001da0;}
+		.main-3{border-left:1px solid #0855dd;border-bottom:1px solid #0048f1;border-right:1px solid #003edc;}
+		.main-4{border-left:3px solid #fff;border-top:4px solid #fff;background:#c0c0c0; padding: 5px; position: relative;}
+		.main-1 i{width:4px;height:3px;position:absolute;background:url(img/icons.png) 0 -84px no-repeat;bottom:0;left:0;}
+		.main-1 b{width:4px;height:3px;position:absolute;background:url(img/icons.png) 0 -5px no-repeat;bottom:0;right:0;}
+
+		.menu {margin-bottom: 6px;}
+		.con { height: 36px; border: 3px solid #333; border-color: #808080 #fff #fff #808080; position: relative; }
+		.num { position: absolute; left: 5px; top: 5px; border: 1px solid #ccc;}
+		.num img {float: left;}
+		.time { position: absolute; right: 5px; top: 5px; border: 1px solid #ccc; }
+		.time img { float: left; }
+		.face { width: 26px; height: 26px; background: url('img/sm1.gif'); margin: 5px auto;}
+		.level { text-align: right; padding-right: 4px; background: #ece9d8; height: 30px; line-height: 30px; }
+		.level input { font-size: 10px; border: 1px solid #ccc; background: #eee; cursor: pointer; margin: 0; padding: 1px; font-family: '微软雅黑','宋体';}
+
+		.wp { overflow: hidden; border: 3px solid #333; border-color: #808080 #fff #fff #808080; position: relative;}
+		.wp div { width: 16px; height: 16px; line-height: 16px; text-align: center; float: left; font-size: 14px; font-weight: bold; background: url('img/box.gif');}
+		.wp div.active { background: red; }
+		.wp div.empty { background: url('img/boxbj.gif'); }
+		.wp div.mine { background: url('img/lei2.gif'); }
+		.wp div.tag { background: url('img/you.gif'); }
+		.wp div.mine_all { background: url('img/lei1.gif'); }
+		.wp .mark { width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 1; background: none;}
+
+		.level_custom { width: 120px; height: 100px; position: absolute; left: 50%; top: 50%; border: 2px solid #333; background: #eee; text-align: center; font-size: 12px; padding: 10px; margin: -60px 0 0 -72px; display: none; z-index: 2;}
+		.level_custom input { width: 50px;}
+
+	</style>
+ </head>
+
+ <body>
+
+	<div class="box">
+		<div class="top"><div><p></p></div></div>
+		<div class="main-1">
+			<i></i><b></b>
+			<div class="main-2">
+				<div class="main-3">
+					<div class='level'>
+						<input type="button" value="初级" />
+						<input type="button" value="中级" />
+						<input type="button" value="高级" />
+						<input type="button" value="自定义" />
+					</div>
+					<div class="main-4">
+						<div class="menu">
+							<div class="con">
+								<div class="num" id="num">
+									<img src="img/0.gif" />
+									<img src="img/0.gif" />
+									<img src="img/0.gif" />
+								</div>
+								<div class="face" id="reset"></div>
+								<div class="time" id="time">
+									<img src="img/0.gif" />
+									<img src="img/0.gif" />
+									<img src="img/0.gif" />
+								</div>
+							</div>
+						</div>
+						<div class="wp" id="box"></div>
+						<div class="level_custom">
+							行数：<input type="number" required/><br />
+							列数：<input type="number" required/><br />
+							雷数：<input type="number" required/><br />
+							<input type="button" class="ok" value="确定" />
+							<input type="button" class="no" value="取消" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+ </body>
+</html>
+
+<script>
+
+	var MV = {};
+
+	MV.MinesBeta = {
+
+		tipNumColor : ['','blue','green','#ff3300','darkblue','#cc0066','#660066'],
+		level_set : [{rows: 9,cols: 9,mines: 10},{rows: 16,cols: 16,mines: 40},{rows: 30,cols: 16,mines: 99},{}],
+		posX : 0, 
+		posY : 0,
+
+		init : function( option ){
+
+			var _this = this;
+			this.mainBox = this.getByClass('box')[0];
+			this.mineBox = document.getElementById('box');
+			this.allMineDiv = this.mineBox.getElementsByTagName('div');
+			this.resetBtn = document.getElementById('reset');
+			this.countImg = document.getElementById('num');
+			this.timeImg = document.getElementById('time');
+			this.dragDiv = this.getByClass('top')[0];
+			this.level = this.getByClass('level')[0];
+			this.level_custom = this.getByClass('level_custom')[0];
+			this.level_btn = this.level.getElementsByTagName('input');
+			this.mineRows = option && option.rows || this.level_set[0].rows;
+			this.mineCols = option && option.cols || this.level_set[0].cols;
+			this.iCount = option && option.mines || this.level_set[0].mines;
+			this.minesPos = this.getRandomNum(0,this.mineRows*this.mineCols-1,this.iCount);
+			this.totalMinesNum = this.mineRows*this.mineCols;
+			this.level_index = this.level_index || 0;
+			this.mineTable = {}; 
+			this.emptyMine = {};
+			this.timer = null;
+			this.iTime = 0;
+
+			console.log( option );
+
+			this.resetBtn.onmousedown = function(){
+				this.style.background = "url(img/sm2.gif)";
+				document.onmouseup = function(){
+					clearInterval(_this.timer);
+					_this.resetBtn.style.background = "url(img/sm1.gif)";
+					_this.init(_this.level_set[_this.level_index]);
+					document.onmouseup = null;
+				};
+			};
+
+			for(var i=0; i<this.level_btn.length; i++){
+			
+				this.level_btn[i].index = i;
+				this.level_btn[i].onclick = function(){
+					var This = this;
+					_this.level_index = this.index;
+					if(this.index==3){
+						_this.level_custom.style.display = 'block';
+						var aInput = _this.level_custom.getElementsByTagName('input');
+						aInput[3].onclick = function(){
+							if(isNaN(aInput[0].value)||isNaN(aInput[1].value)||isNaN(aInput[2].value))return;
+							_this.setLevel('cols',10,50,aInput[0].value);
+							_this.setLevel('rows',10,60,aInput[1].value);
+							_this.setLevel('mines',10,_this.level_set[This.index].rows*_this.level_set[This.index].cols-20,aInput[2].value);
+							
+							_this.init(_this.level_set[_this.level_index]);
+							_this.level_custom.style.display = 'none';
+						}
+						aInput[4].onclick = function(){
+							_this.level_custom.style.display = 'none';
+						};
+						return;
+					}
+					_this.init(_this.level_set[_this.level_index]);
+				};
+
+			}
+
+			this.dragDiv.onmousedown = function(ev){
+				var oEv = ev || event;
+				var disX = oEv.clientX - _this.mainBox.offsetLeft;
+				var disY = oEv.clientY - _this.mainBox.offsetTop;
+
+				document.onmousemove = function(ev){
+					var oEv = ev || event;
+					var l = oEv.clientX - disX;
+					var t = oEv.clientY - disY;
+					_this.mainBox.style.left = l + 'px';
+					_this.mainBox.style.top = t + 'px';
+				};
+
+				document.onmouseup = function(){
+					document.onmousemove = null;
+					document.onmouseup = null;
+				};
+
+				return false;
+			};
+
+			document.oncontextmenu = function(){ return false;};
+			_this.createMines();
+
+		},
+
+		setLevel : function(attr,m,n,val){
+			if(val > n){
+				this.level_set[3][attr] = n;
+			}else if( val <= m){
+				this.level_set[3][attr] = m;
+			}else{
+				this.level_set[3][attr] = val;
+			}
+		},
+
+		createMines : function(){
+			clearInterval(this.timer);
+			this.mainBox.style.width = this.mineRows*16 + 26 + 'px';
+			this.mainBox.style.top = '0px';
+			var sTmp = '';
+			var _this = this;
+
+			for(var i=0; i<this.totalMinesNum; i++){sTmp += "<div></div>";}
+
+			this.mineBox.innerHTML = sTmp;
+			this.countImg.innerHTML = this.getImgs(this.iCount);
+			this.timeImg.innerHTML = this.getImgs(this.iTime);
+			this.resetBtn.style.background = "url(img/sm1.gif)";
+			this.mainBox.style.left = (document.documentElement.clientWidth - this.mainBox.offsetWidth)/2 + 'px';
+			this.mainBox.style.top = (document.documentElement.clientHeight - this.mainBox.offsetHeight)/2 + 'px';
+
+			for(var i=0; i<this.allMineDiv.length; i++){
+
+				this.allMineDiv[i].onmousedown = function(){
+					var This = this;
+					This.className = 'empty';
+					_this.resetBtn.style.background = "url(img/sm3.gif)";
+					if(!_this.timer)_this.fnTime();
+
+					document.onmouseup = function(ev){
+						var oEv = ev || event;
+						_this.docMouseUp(ev,This);
+					};
+
+				};
+			}
+
+			_this.setPos();
+			_this.setMines();
+			_this.countImg.innerHTML = _this.getImgs(_this.iCount);
+		
+		},
+
+		docMouseUp : function(ev,This){
+			this.resetBtn.style.background = "url(img/sm1.gif)";
+			if(this.rightMouseClk(ev)){
+				if(This.bTag){
+					This.className = '';
+					This.bTag = false;
+					this.iCount++;
+				}else{
+					This.className = 'tag';
+					This.bTag = true;
+					this.iCount--;
+					if(!this.iCount)this.gameOver(null);
+				}
+				this.countImg.innerHTML = this.getImgs(this.iCount);
+				this.timeImg.innerHTML = this.getImgs(this.iTime);
+				document.onmousedown = document.onmouseup = null;
+				return false;
+			}
+
+			if(This.mine){this.gameOver(This);return;}
+			This.onmousedown = document.onmouseup = This.oncontextmenu = null;
+			if(!this.setMineTip(This))return;
+			this.findEmpty(This);
+		},
+
+		gameOver : function(This){
+			if(This){
+				This.className = 'mine';
+				this.resetBtn.style.background = "url(img/sm4.gif)";
+			}
+			this.showMines(This);
+			var oDiv = document.createElement('div');
+			oDiv.className = 'mark';
+			this.mineBox.appendChild(oDiv);
+			clearInterval(this.timer);
+			document.onmouseup = null;
+		},
+
+		getImgs : function (n){
+			var s = (''+n).split('').reverse().join('');
+			var len = Math.max(s.length,3);
+			var sImgs = '';
+			for(var i=0; i<len; i++){
+				if(!s.charAt(i)){
+					sImgs = "<img src='img/0.gif' />" + sImgs;
+					continue;
+				}
+				sImgs = "<img src='img/"+s.charAt(i)+".gif' />" + sImgs;
+			}
+			return sImgs;
+		},
+
+		fnTime : function (){
+			var _this = this;
+			_this.timer = setInterval(function(){
+				_this.iTime++;
+				_this.timeImg.innerHTML = _this.getImgs(_this.iTime);
+			},1000);
+		},
+
+		setPos : function (){
+			for(var i=0; i<this.allMineDiv.length; i++){
+				this.posY = Math.floor(i/this.mineRows);
+				this.allMineDiv[i].num = 0;
+				this.allMineDiv[i].pos = {x: this.posX, y: this.posY};
+				this.mineTable['x'+this.posX+'y'+this.posY] = this.allMineDiv[i];
+				this.allMineDiv[i].tag = 'x'+this.posX+'y'+this.posY;
+				this.posX++;
+				this.posX%=this.mineRows;
+			}
+		},
+
+		setMines : function (){
+			for(var i=0; i<this.minesPos.length; i++){
+				this.allMineDiv[this.minesPos[i]].mine = 1;
+				this.setMineNum(this.chkNears(this.allMineDiv[this.minesPos[i]]));
+			}
+		},
+
+		showMines : function (obj){
+			for(var i=0; i<this.minesPos.length; i++){
+				if(this.allMineDiv[this.minesPos[i]]!=obj){
+					this.allMineDiv[this.minesPos[i]].className = 'mine_all';
+				}
+			}
+		},
+
+		getNears : function (obj){
+			var x = obj.pos.x;
+			var y = obj.pos.y;
+			var aPos = [
+				{x: -1, y: -1},{x: 0, y: -1},{x: 1, y: -1},
+				{x: -1, y: 0},{x: 1, y: 0},
+				{x: -1, y: 1},{x: 0, y: 1},{x: 1, y: 1}
+			];
+			var nearMines = [];
+
+			for(var i=0; i<aPos.length; i++){
+				nearMines.push(this.mineTable['x'+(x+aPos[i].x)+'y'+(y+aPos[i].y)]);
+			}
+
+			return nearMines;
+		},
+
+		chkNears : function (obj){
+			var nearMines = [];
+			var aNears = this.getNears(obj);
+
+			for(var i=0; i<aNears.length; i++){
+				if(aNears[i])nearMines.push(aNears[i]);
+			}	
+		
+			return nearMines;
+		},
+
+		setMineNum : function (minesPos){
+			for(var i=0; i<minesPos.length; i++){
+				minesPos[i].num++;
+			}
+		},
+
+		setMineTip : function (obj){
+			obj.className = 'empty';
+			obj.onmousedown = obj.onmouseup = null;
+			if(obj.num){
+				obj.innerHTML = obj.num;
+				obj.style.color = this.tipNumColor[obj.num];
+				return false;
+			}
+			return true;
+		},
+
+		findEmpty : function (obj){
+			if(!obj)return;
+			this.emptyMine[obj.tag] = obj;
+			this.setMineTip(obj);
+			var arr = this.getNears(obj);
+
+			for(var i=0; i<arr.length; i++){
+				if(arr[i] && !this.emptyMine[arr[i].tag] && !arr[i].mine)this.setMineTip(arr[i]) && this.findEmpty(arr[i]);
+			}
+		},
+
+		getByClass : function (sClass,parent){
+			var aEles = (parent||document).getElementsByTagName('*');
+			var re = new RegExp('\\b'+sClass+'\\b');
+			var arr = [];
+
+			for(var i=0; i<aEles.length; i++){
+				if(re.test(aEles[i].className)){
+					arr.push(aEles[i]);
+				}
+			}
+			return arr;
+		},
+
+		rightMouseClk : function (ev){
+			return ev.button == 2 ? true : false;
+		},
+
+		getRandomNum : function (x,y,count){
+			var arr = [],obj = {};
+			var iCount = count || 1;
+			for(var i=0; i<=arr.length;){
+				var iNum = Math.round(Math.random()*(y-x)+x);
+				if(!obj[iNum]){
+					obj[iNum] = 1;
+					arr.push(iNum);
+					i++;
+				}
+				if(arr.length == iCount){return arr};
+			}
+		}
+	
+	}
+
+	MV.MinesBeta.init();
+
+</script>
+
+<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script>
+var popData = {
+  title: "游戏介绍",
+  content: `
+    <div>
+			<p>1,游戏通过面向对象的编程方式实现</p>
+			<p>2,一共有四种模式，分别是：初、中、高级和自定义</p>
+			<p>3,选择自定义时，行、列、雷数如果未填，会采用系统默认值</p>
+			<p>4,最小行数为： 10，最大行数为：50</p>
+			<p>5,最小列数为： 10，最大列数为：60</p>
+			<p>6,最少雷数为：10，最多雷数为：行数*列数-20</p>
+			<p>7,玩法与系统扫雷相同，左键踩，右键标记。</p>
+			<p>8,并没有实现像系统扫雷那样同时按左右键来测试是否有雷（目前似乎没有办法判断是否同时按下了左右两键）。</p>
+    </div>
+  `
+} 
+$('<div id="pops">').load('/html/pops.html').appendTo('body');
+</script>

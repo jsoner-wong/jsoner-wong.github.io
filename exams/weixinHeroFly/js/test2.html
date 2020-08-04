@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+
+<script type="text/javascript">
+// "use strict"
+	
+function fn1(){
+	alert( this );
+}
+
+// fn1(); //window    严格模式下为  undefined
+
+//事件发生在谁身上,被事件直接调用的函数中的this就是谁
+// document.onclick = fn1;
+
+document.onclick = function(){
+	alert(1233);
+	fn1(); //window
+};
+
+// fn1.call(document);
+// fn1.call(1);
+// fn1.call("abc");
+// fn1.apply(document);
+
+
+function fn2(a,b,c){
+	// alert(this);
+	alert(a);
+	alert(b);
+	alert(c);
+}
+
+// fn2(1,2); //实参：实际使用的参数
+
+//从第二个参数开始，将后面所有的参数作为调用call方法的函数的实参传给函数。
+// fn2.call(null,1,2,3);
+// fn2.apply(null,1,2);
+// fn2.call(null,[1,2]);
+fn2.apply(null,[1,2]);
+
+
+</script>
+
+</body>
+</html>

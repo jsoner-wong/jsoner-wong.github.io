@@ -1,0 +1,349 @@
+﻿<!DOCTYPE html>
+<html>
+ <head>
+  <title> Jsoner - 2048 </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="format-detection" content="email=no" />
+  <meta name="format-detection" content="address=no;">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta http-equiv="Cache-Control" content="max-age=0" />
+  <meta http-equiv="Cache-Control" content="no-cache" />
+	<style>
+   body { background: #baac9f; }
+   #box { width: 360px; height: 360px; margin: 50px auto 0; }
+   #box div { width: 80px; height: 80px; line-height: 80px; text-align: center; background: #ccc0b2; border-radius: 10px; margin: 5px; float: left; font-size: 30px; font-family: Arial; font-weight: bold; }
+   #score { width: 360px; margin: 10px auto 0; font-size: 30px; font-family: Arial; font-weight: bold; text-align: center; }
+	</style>
+ </head>
+
+ <body>
+
+
+  <!-- <div id="box">
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+  </div>
+
+  <div id="score">0</div>-->
+
+ </body>
+</html>
+
+<script>
+
+var G2048 = {
+
+  emptyDiv : [], //空闲的div
+
+  rows : [[],[],[],[]],
+
+  cols : [[],[],[],[]],
+
+  score : 0,
+
+  highScore : 0,
+
+  isPhone : (function(){
+    var agt = window.navigator.userAgent.toLowerCase();
+    return  !!(agt.match(/android/) || agt.match(/mobile/) );
+  })(),
+
+  init : function(){ //初始化
+
+    this.oBox = this.create('div');
+    this.oScore = this.create('div');
+    this.oScore.id = 'score';
+    this.oBox.id = 'box';
+
+    for(var i=0; i<16; i++){
+      var oDiv = this.create('div');
+      //oDiv.innerHTML = '1024';
+      oDiv.index = i;
+      this.emptyDiv.push(i);
+      this.append(oDiv,this.oBox);
+
+      this.rows[Math.floor(i/4)].push(oDiv);
+      this.cols[i%4].push(oDiv);
+
+    }
+
+    this.oScore.innerHTML = "Score 0";
+
+    this.append(this.oBox);
+    this.append(this.oScore);
+    this.aDiv = this.oBox.getElementsByTagName('div');
+
+    this.newNum();
+    this.newNum();
+
+    document.isPhone = this.isPhone;
+    document.newNum = this.newNum;
+    document.o = this;
+
+    document.onmousedown = this.down;
+    document.onmousemove = this.move;
+    document.onmouseup = this.up;
+
+    document.ontouchstart = this.down;
+    document.ontouchmove = this.move;
+    document.ontouchend = this.up;
+
+    document.onkeyup = this.keyup;
+
+  },
+
+  getArr : function( els , bl ){
+
+    var arr = [];
+
+    for(var i=0; i<els.length; i++){
+      arr.push(Number(els[i].innerHTML));
+    }
+
+    return arr;
+
+  },
+
+  sum : function( arr , n , m ){
+    if( (m < 0 && n==0) || (m > 0 && n==arr.length-1) )return arr;
+
+    var arr2 = [], i = n , num = 0;
+
+    for( ; m > 0 ? i<arr.length : i>=0 ; m > 0 ? i++ : i-- ){
+
+      if(!arr[i])continue;
+      if(arr2.length&&arr[i] != arr[arr2[0]]||arr2.length==2)break;
+      arr2.push(i);
+
+    }
+
+    switch(arr2.length){
+      case 2:
+        num = arr[n] = arr[arr2[0]] + arr[arr2[1]];
+        if(n!=arr2[0])arr[arr2[0]]=0;arr[arr2[1]]=0;
+        break;
+      case 1:
+        arr[n] = arr[arr2[0]];
+        if(n!=arr2[0])arr[arr2[0]]=0;
+        break;
+    }
+
+    this.score += num;
+
+    return this.sum(arr,n+m,m);
+  },
+
+  toHtml : function( els, arr, bl ){
+    for(var i=0; i<els.length; i++){
+      els[i].innerHTML = "";
+      if(arr[i])els[i].innerHTML = arr[i];
+    }
+    this.oScore.innerHTML = "Score " + this.score;
+  },
+
+  newNum : function(){ //随机给一个空闲div添加“2”或“4”;
+
+    var oDiv = this.randDiv();
+    var num = this.getRand(1,100) > 20 ? "2" : "4";
+    oDiv.innerHTML = num;
+
+    this.setBg();
+    this.scale(oDiv);
+
+  },
+
+  test2 : function( arr ){
+    var arr2 = [];
+    for(var i=0; i<arr.length; i++){
+      arr2.push(arr[i].index);
+    }
+    console.log(arr2);
+  },
+
+  slide : function( arr, n ){
+
+    for(var i=0; i<arr.length; i++){
+       this.toHtml( arr[i], this.sum(  this.getArr( arr[i] ), n > 0 ? 0 : 3 , n ) );
+    }
+
+    if(!this.isFull())this.newNum();
+  },
+
+  scale : function(obj){
+    var n = 0.1;
+    var timer = null;
+
+    timer = setInterval(function(){
+      n += 0.1;
+      if(n>1){n = 1;clearInterval(timer);}
+      obj.style.WebkitTransform = 'scale(' + n + ')';
+      obj.style.MozTransform = 'scale(' + n + ')';
+      obj.style.transform = 'scale(' + n + ')';
+    },30);
+
+  },
+
+  setBg : function(){
+
+    for(var i=0; i<this.aDiv.length; i++){
+      this.aDiv[i].style.background = this.bgColor[this.aDiv[i].innerHTML];
+      if(!Number(this.aDiv[i].innerHTML)){
+        this.aDiv[i].style.background = '#ccc0b2';
+        this.aDiv[i].innerHTML = '';
+      }
+    }
+
+    if( this.isOver() ){
+      alert('game over!');
+      this.gameover();
+    }
+
+  },
+
+  down : function(ev){ //鼠标按下事件 、触屏开始事件
+     var ev = this.isPhone ? ev.targetTouches[0] : ev || event;
+
+     this.pX = this.isPhone ? ev.pageX : ev.clientX;
+     this.pY = this.isPhone ? ev.pageY : ev.clientY;
+
+     this.range = 0;
+
+     return false;
+
+  },
+
+  move : function(ev){ //鼠标移动、触屏滑动事件
+    var ev = this.isPhone ? ev.targetTouches[0] : ev || event;
+
+    this.disX = (this.isPhone ? ev.pageX : ev.clientX) - this.pX;
+    this.disY = (this.isPhone ? ev.pageY : ev.clientY) - this.pY;
+
+    this.range++;
+
+  },
+
+  up : function (ev){ //鼠标抬起、触屏停止事件
+
+    if ( this.range > 2){
+
+      if( Math.abs( this.disX ) < Math.abs( this.disY ) ){
+        if( this.disY < 0){
+          this.o.slide( this.o.cols, 1 ); //'向上'
+        }else{
+          this.o.slide( this.o.cols, -1); //'向下'
+        }
+      }else{
+        if( this.disX < 0 ){
+          this.o.slide( this.o.rows, 1 ); //'向左'
+        }else{
+          this.o.slide( this.o.rows, -1 ); //'向右'
+        }
+      }
+
+    }
+
+    this.range = 0;
+
+  },
+
+  keyup : function(ev){ //键盘按键抬起
+
+    var ev = ev || event;
+
+    switch(ev.keyCode){
+      case 37:
+        this.o.slide( this.o.rows, 1 );
+        break;
+      case 38:
+        this.o.slide( this.o.cols, 1 );
+        break;
+      case 39:
+        this.o.slide( this.o.rows, -1 );
+        break;
+      case 40:
+        this.o.slide( this.o.cols, -1 );
+        break;
+    }
+
+  },
+
+  create : function(tag){ //创建元素
+    return document.createElement(tag);
+  },
+
+  append : function(o,p){ //追加元素
+    (p||document.body).appendChild(o);
+  },
+
+  isOver : function(){
+
+    if( !this.isFull() )return false;
+
+    var arr = [this.rows,this.cols];
+
+    for(var i=0; i<arr.length; i++){
+      for(var j=0; j<arr[i].length; j++){
+        for(var k=1; k<arr[i][j].length; k++){
+          if(arr[i][j][k].innerHTML == arr[i][j][k-1].innerHTML)return false;
+        }
+      }
+    }
+
+    return true;
+
+  },
+
+  isFull : function(){
+
+    for(var i=0; i<this.aDiv.length; i++){
+      if(!this.aDiv[i].innerHTML)return false;
+    }
+    return true;
+
+  },
+
+  gameover : function(){ //游戏结束
+
+    var oMask = this.create('div');
+    oMask.style.cssText = "width: 100%; height: 100%; position: absolute; opacity: 0; left: 0; top: 0;";
+    document.body.appendChild( oMask );
+    document.onkeyup = null;
+
+  },
+
+  randDiv : function(index){ //随机选中一个div。
+
+    var i = this.getRand(0,15);
+    return this.aDiv[i].innerHTML ? this.randDiv() : this.aDiv[i];
+
+  },
+
+  getRand : function(x,y){ //获取  x ~ y 之间的随机数
+    return Math.round( Math.random()*(y-x) + x);
+  },
+
+  bgColor : { //数字的背景颜色。
+    '2'     : '#ece4d9',
+    '4'     : '#ece0c6',
+    '8'     : '#f2b179',
+    '16'    : '#f59562',
+    '32'    : '#f57c5f',
+    '64'    : '#f45e39',
+    '128'   : '#eccc5f',
+    '256'   : '#ecc84e',
+    '512'   : '#f2b179',
+    '1024'  : '#ebc53e',
+    '2048'  : '#ebc53e'
+  }
+
+};
+
+G2048.init();
+
+
+</script>

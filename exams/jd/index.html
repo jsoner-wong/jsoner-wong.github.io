@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title> 蓝鸥科技 | 京东放大镜 </title>
+	<style type="text/css">
+		#box {
+			width: 350px; height: 350px;
+			border: 1px solid #ccc;
+			float: left;
+			position: relative;
+		}
+		#box img {
+			width: 100%; height: 100%;
+		}
+		#box span {
+			position: absolute; left: 0; top: 0;
+			width: 200px; height: 200px; background: #f60; opacity: 0.3;
+		}
+		#popView {
+			width: 450px; height: 450px;
+			border: 1px solid #ccc;
+			overflow: hidden;
+			float: left;
+		}
+	</style>
+</head>
+<body>
+	<div id="box">
+		<img src="img/small.jpg">
+		<span></span>
+	</div>
+	<div id="popView">
+		<img src="img/big.jpg">
+	</div>
+	<script type="text/javascript">
+		var oBox = document.getElementById('box');
+		var popView = document.getElementById('popView');
+		var smallImg = oBox.getElementsByTagName('img')[0];
+		var bigImg = popView.getElementsByTagName('img')[0];
+		var oSpan = oBox.getElementsByTagName('span')[0];
+
+		// console.log(bigImg.offsetWidth);
+
+		bigImg.onload = function(){
+			var sW = oBox.clientWidth - oSpan.offsetWidth;
+			var sH = oBox.clientHeight - oSpan.offsetHeight;
+			var bW = bigImg.offsetWidth - popView.clientWidth;
+			var bH = bigImg.offsetHeight - popView.clientHeight;
+
+			oBox.onmousemove = function(ev){
+
+				// console.log(bW,bigImg.offsetWidth , popView.clientWidth );
+
+				var l = ev.clientX - oBox.offsetLeft - 100, t = ev.clientY - oBox.offsetTop - 100;
+				var w = 0,h = 0,scale = 0,x = 0, y = 0;
+
+				if( l < 0 ) l = 0;
+				if( l > sW ) l = sW;
+				if( t < 0 ) t = 0;
+				if( t > sH ) t = sH;
+
+				scaleX = l / sW;
+				scaleY = t / sH;
+
+				console.log(ev.offsetX-100,ev.offsetY-100);
+
+				oSpan.style.left = l + 'px';
+				oSpan.style.top = t + 'px';
+
+				popView.scrollLeft = scaleX * bW;
+				popView.scrollTop = scaleY * bH;
+
+
+			};
+
+		}
+	</script>
+</body>
+</html>
+
+<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script>
+var popData = {
+  title: "页面介绍",
+  content: `
+    <div>
+			<p>效果本身并不复杂，原理相对也比较简单。</p>
+			<p>当时刚看到京东这个效果，以为原理是通过修改大图的left/top值来实现大图移动，但通过调试工具查看，发现页面中元素的left/top值并没有变化</p>
+			<p>正常来说，通过js控制元素样式，样式是写入到行间的，而京东页面行间没有样式变化，所以勾起了我的好奇心。</p>
+			<p>通过查看源码，发现京东是通过控制父元素的滚动距离来实现的，于是自己也动手试了一下。</p>
+    </div>
+  `
+} 
+$('<div id="pops">').load('/html/pops.html').appendTo('body');
+</script>

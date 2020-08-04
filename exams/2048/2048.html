@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title> New Document </title>
+  <meta charset="utf-8">
+	<style>
+   body { background: #baac9f; }
+   #box { width: 440px; height: 440px; margin: 50px auto 0; }
+   #box div { width: 100px; height: 100px; line-height: 100px; text-align: center; background: #ccc0b2; border-radius: 10px; margin: 5px; float: left; font-size: 32px; font-family: Arial; }
+	</style>
+ </head>
+
+ <body>
+
+
+  <!-- <div id="box">
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div>
+  </div> -->
+
+ </body>
+</html>
+
+<script>
+
+
+
+var G2048 = {
+
+  emptyDiv : [], //空闲的div
+
+  agt : window.navigator.userAgent.toLowerCase(), //userAgent
+
+  isPhone : function(){
+    return  !!( this.agt.match(/android/) || this.agt.match(/mobile/) );
+  },
+
+  init : function(){ //初始化
+
+    this.oBox = this.creat('div');
+    this.aDiv = this.oBox.getElementsByTagName('div');
+    this.oBox.id = 'box';
+
+    for(var i=0; i<16; i++){
+      var oDiv = this.creat('div');
+      //oDiv.innerHTML = '1024';
+      oDiv.index = i;
+      this.emptyDiv.push(i);
+      this.append(oDiv,this.oBox);
+    }
+
+    this.append(this.oBox);
+
+    this.newNum();
+    this.newNum();
+
+    //alert( this.agt );
+    alert( this.isPhone() );
+
+  },
+
+  down : function(){
+
+  },
+
+  creat : function(tag){ //创建元素
+    return document.createElement(tag);
+  },
+
+  append : function(o,p){ //追加元素
+    (p||document.body).appendChild(o);
+  },
+
+  newNum : function(){ //
+
+    var oDiv = this.randDiv();
+
+    var num = this.getRand(1,100) > 20 ? "2" : "4";
+    oDiv.innerHTML = num;
+    oDiv.style.background = this.bgColor[num];
+
+  },
+
+  randDiv : function(index){ //随机给一个空闲div添加“2”或“4”;
+
+    var i = this.getRand(0,15);
+
+    if(this.aDiv[i]){
+
+      for(var j=0; j<this.emptyDiv.length; j++){
+        if(this.emptyDiv[j] == i){
+          console.log(i);
+          return this.aDiv[this.emptyDiv.splice(j,1)];
+        }
+      }
+
+    }
+
+    return this.randDiv();
+
+  },
+
+  getRand : function(x,y){ //获取  x ~ y 之间的随机数
+    return Math.round( Math.random()*(y-x) + x);
+  },
+
+  bgColor : { //数字的背景颜色。
+    '2'     : '#ece4d9',
+    '4'     : '#ece0c6',
+    '8'     : '#f2b179',
+    '16'    : '#f59562',
+    '32'    : '#f57c5f',
+    '64'    : '#f45e39',
+    '128'   : '#eccc5f',
+    '256'   : '#ecc84e',
+    '512'   : '#f2b179',
+    '1024'  : '#ebc53e',
+    '2048'  : '#ebc53e'
+  }
+
+};
+
+G2048.init();
+
+
+</script>
