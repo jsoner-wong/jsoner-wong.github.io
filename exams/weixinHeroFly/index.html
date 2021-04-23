@@ -22,15 +22,11 @@
 		    margin-bottom: 20px;
 		  }
 		  #gameover { display: none; }
-		  #gameover div { 
-		    width: 200px; padding: 20px; 
-		    border-radius: 5px;
-		    border: 1px solid #333;
-		    margin: 200px auto 0;
-		    background: rgba(211,211,211,0.8);
+		  #gameover p:first-child {
+		    margin-top: 200px;
+		  }
+		  #gameover p {
 		    font-size: 30px;
-		    text-align: center;
-		    line-height: 1.5;
 		  }
 		</style>
 	</head>
@@ -42,9 +38,7 @@
         <span>正在加载...</span>
       </div>
       <div id="gameover">
-        <div>
-          <p>游戏结束</p>
-        </div>
+        <p>游戏结束</p>
       </div>
 	  </div>
 
@@ -59,37 +53,24 @@
 	    var i = 0; len = audio_sources.length;
 	    var bgOffsetY = 0,isOver = false;
 	    var heroFly = new Factory(30,460,66,82,cvs);
-	    var bulletArr = [], bullet_type = 0, bullet_speed = 1;
+	    var bulletArr = [], bullet_type = 0, bullet_speed = 8;
 	    var heroPos = 0, count = 0,heroSpeed = 5;
 	    var enemyArr = [], key = 0;//2 4 8 16
-	    var bomb = null, buff = null, scores = 0;
 	    var json = {
 	      '37': 2, '38': 4, '39': 8, '40': 16
-	    };
+	    }
 
-      loadAudios(function(){//加载音频资源
+      loadAudios(function(){
         i = 0; len = image_sources.length;
-        //重置i和len的值，继续加载图片资源
-        loadImages(function(){//加载图片资源
-          audios.bgsound.loop = true; //设置背景音乐循环播放
-          
-					loading.style.display = 'none';  //隐藏 loading 层
-					
-//        console.log( audios , images );
-					document.onclick = function(){
-						audios.bgsound.play(); // 播放背景音乐
-						gameStart();//开始游戏
-						document.onclick = null;
-						
-					}
-
-          alert('点击屏幕，开始游戏')
+        loadImages(function(){
+          audios.bgsound.loop = true;
+          audios.bgsound.play();
+          gameStart();
         });
       });
       
       document.onkeydown = function(ev){
         var code = ev.keyCode;
-        if( code == 32 && bomb ) {clearEnemy();return false;}
         if(code!=37&&code!=38&&code!=39&&code!=40)return;
         if(!this[code] ) key += json[code];
         this[code] = true;
@@ -101,29 +82,149 @@
         if(code!=37&&code!=38&&code!=39&&code!=40)return;
         key -= json[code];
       };
+	    
+	    function gameStart(){
+        var bgImg = images.background;
+        count ++;
+        cvs.beginPath();
+        cvs.drawImage(bgImg,0,bgOffsetY);
+        cvs.drawImage(bgImg,0,-canvas.height + bgOffsetY);
+        bgOffsetY += 2;
+        if(bgOffsetY>canvas.height) bgOffsetY = 0;
 
-      randBuff();
-      //增益效果     debuff 减益效果
+        switch(key){
+          case 2:
+            heroFly.x -= heroSpeed;
+            if( heroFly.x < 0 ) heroFly.x = 0;
+            break;
+          case 4:
+            heroFly.y -= heroSpeed;
+            if(heroFly.y<0) heroFly.y = 0;
+            break;
+          case 8:
+            heroFly.x += heroSpeed;
+            if( heroFly.x > canvas.width - heroFly.w ) heroFly.x = canvas.width - heroFly.w;
+            break;
+          case 16:
+            heroFly.y += heroSpeed;
+            if(heroFly.y > canvas.height - heroFly.h ) heroFly.y = canvas.height - heroFly.h;
+            break;
+        }
+        
+        heroFly.draw(images.heroFly,heroPos*66,0,heroFly.w,heroFly.h,heroFly.x,heroFly.y,heroFly.w,heroFly.h);
+        heroPos += 1;
+        heroPos %= 2;
+        
+        if( count % bullet_speed == 0 )createBullet();
+        drawBullet();
+        
+        if( count % 30 == 0 ) createEnemy();
+        drawEnemy();
+        
+        loading.style.display = 'none';	      
+	      if(!isOver) window.requestAnimationFrame(gameStart);
+	    }
+
+      function createEnemy(){
+        var enemy,img,x,y,w,y,num = getRand(0,100),arrW = [38,46,110];
+        img = images['enemy'+(num+1)];
+        w = arrW[num];
+        h = img.height;
+        x = getRand(w,canvas.width-w,true);
+        y = -h;
+        enemy = new Factory(x,y,w,h,cvs);
+        enemy.img = img;
+        enemy.sound = audios['enemy'+(num+1)];
+        enemy.life = 3*num;
+        enemy.posX = 0;
+        enemy.length = img.width / w;
+        enemy.speed = getRand(3,6,true) - Math.floor(1.5*num);
+//              console.log(x,y,w,h,num,img);
+        enemyArr.push(enemy);
+      }
+      
+      setTimeout(function(){
+        bullet_type = 1;
+        setTimeout(function(){
+          bullet_type = 0;
+        },10000);
+      },5000);
+      
+      function drawEnemy(){
+        var sound;
+        for(var i=0; i<enemyArr.length; i++){
+          if( enemyArr[i].die ){
+            enemyArr[i].posX ++;
+          }else{
+            enemyArr[i].y += enemyArr[i].speed;
+          }
+          if( enemyArr[i].posX == enemyArr[i].length || enemyArr[i].y > canvas.height ){
+            sound = enemyArr[i].sound.cloneNode();
+            sound.play();
+            enemyArr.splice(i,1);
+            continue;
+          }          
+          enemyArr[i].draw(enemyArr[i].img,enemyArr[i].posX*enemyArr[i].w,0,enemyArr[i].w,enemyArr[i].h,enemyArr[i].x,enemyArr[i].y,enemyArr[i].w,enemyArr[i].h);
+          if( isCrash( enemyArr[i], heroFly ) ){
+            audios.gameover.play();
+            gameover.style.display = 'block';
+            audios.bgsound.pause();
+            isOver = true;
+          }
+        }
+      }
+
+      function drawBullet(){
+        for(var i=0; i<bulletArr.length; i++){
+          bulletArr[i].y -= 7;
+          if(bullet_type == 1 ){
+            bulletArr[i].draw(images.doubleBullet,bulletArr[i].x,bulletArr[i].y);
+          }else{
+            bulletArr[i].draw(images.singleBullet,bulletArr[i].x,bulletArr[i].y);            
+          }
+          if( checkEnemyDie(bulletArr[i]) || bulletArr[i].y < 0 ){
+            bulletArr.splice(i,1);
+            i --;
+          }
+        }
+      }
+      
+      function createBullet(){
+        var bullet,x,y,w,h = 14;
+        var sound = audios.bullet.cloneNode();
+        if( bullet_type == 1 ){
+          w = images.doubleBullet.width;
+        }else{
+          w = images.singleBullet.width;
+        }
+        x = heroFly.x + (heroFly.w-w) / 2;
+        y = heroFly.y - h;
+        bullet = new Factory(x,y,w,h,cvs);
+        bulletArr.push( bullet );
+        sound.play();
+        sound = null;
+      }
+      
+      function checkEnemyDie(obj){
+        for(var i=0; i<enemyArr.length; i++){
+          if( isCrash(enemyArr[i],obj) ){
+            enemyArr[i].life -= bullet_type+1;
+            obj.die = true;
+            if( enemyArr[i].life <= 0 ) enemyArr[i].die = true;
+            return true;
+          }
+        }
+        return false;
+      }
+      
+      function checkHeroDie(){
+        for(var i=0; i<enemyArr.length; i++){
+          if( isCrash(heroFly,enemyArr[i]) ){
+            heroFly.die = true;
+          }
+        }          
+      }      
 
 	  </script>
 	</body>
 </html>
-
-<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
-<script>
-var popData = {
-  title: "游戏介绍",
-  content: `
-    <div>
-			<p>1,本游戏只能在PC上运行，没有做移动端处理</p>
-			<p>2,方向键控制英雄机移动</p>
-			<p>3,空格键投放鱼雷，获得掉落的鱼雷会显示在右下角</p>
-			<p>4,不同等级的敌机，打死需要的攻击次数不同</p>
-			<p>5,BUFF同时只能拥有一个，在身上已有BUFF时，不会掉落其它BUFF</p>
-			<p>6,鱼雷也是BUFF之一，所以看到右下角有鱼雷，在合适的时机用掉</p>
-			<p>7,加速子弹的头像并不是我</p>
-    </div>
-  `
-} 
-$('<div id="pops">').load('/html/pops.html').appendTo('body');
-</script>

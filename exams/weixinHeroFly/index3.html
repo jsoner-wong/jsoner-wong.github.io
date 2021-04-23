@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+		  #wrap {
+		    box-shadow: 0 0 20px #333;
+		    margin: 20px auto 0;
+		    width: 320px; height: 568px;
+		    position: relative;
+		  }
+		  #loading,#gameover {
+		    position: absolute;
+		    width: 100%; height: 100%;
+		    background: rgba(128,128,128,0.5);
+		    left: 0; top: 0;
+		    text-align: center;
+		  }
+		  #loading img {
+		    margin-top: 200px;
+		    margin-bottom: 20px;
+		  }
+		  #gameover { display: none; }
+		  #gameover div { 
+		    width: 200px; padding: 20px; 
+		    border-radius: 5px;
+		    border: 1px solid #333;
+		    margin: 200px auto 0;
+		    background: rgba(211,211,211,0.8);
+		    font-size: 30px;
+		    text-align: center;
+		    line-height: 1.5;
+		  }
+		</style>
+	</head>
+	<body>
+	  <div id="wrap">
+      <canvas id="cvs" width="320" height="568"></canvas>
+      <div id="loading">
+        <img src="img/loading.gif"/><br/>
+        <span>正在加载...</span>
+      </div>
+      <div id="gameover">
+        <div>
+          <p>游戏结束</p>
+        </div>
+      </div>
+	  </div>
+
+    <script src="js/sources.js"></script>
+    <script src="js/game.js"></script>
+	  <script>
+	    var canvas = document.getElementById('cvs');
+	    var loading = document.getElementById('loading');
+	    var gameover = document.getElementById('gameover');
+	    var cvs = canvas.getContext('2d');
+	    var raf = null, audios = {}, images = {};
+	    var i = 0; len = audio_sources.length;
+	    var bgOffsetY = 0,isOver = false;
+	    var heroFly = new Factory(30,460,66,82,cvs);
+	    var bulletArr = [], bullet_type = 0, bullet_speed = 1;
+	    var heroPos = 0, count = 0,heroSpeed = 5;
+	    var enemyArr = [], key = 0;//2 4 8 16
+	    var bomb = null, buff = null, scores = 0;
+	    var json = {
+	      '37': 2, '38': 4, '39': 8, '40': 16
+	    };
+
+      loadAudios(function(){//加载音频资源
+        i = 0; len = image_sources.length;
+        //重置i和len的值，继续加载图片资源
+        loadImages(function(){//加载图片资源
+          audios.bgsound.loop = true; //设置背景音乐循环播放
+          
+					loading.style.display = 'none';  //隐藏 loading 层
+					
+//        console.log( audios , images );
+					document.onclick = function(){
+						audios.bgsound.play(); // 播放背景音乐
+						gameStart();//开始游戏
+						document.onclick = null;
+						
+					}
+
+          alert('点击屏幕，开始游戏')
+        });
+      });
+      
+      document.onkeydown = function(ev){
+        var code = ev.keyCode;
+        if( code == 32 && bomb ) {clearEnemy();return false;}
+        if(code!=37&&code!=38&&code!=39&&code!=40)return;
+        if(!this[code] ) key += json[code];
+        this[code] = true;
+      };
+      
+      document.onkeyup = function(ev){
+        var code = ev.keyCode;
+        this[code] = false;
+        if(code!=37&&code!=38&&code!=39&&code!=40)return;
+        key -= json[code];
+      };
+
+      randBuff();
+      //增益效果     debuff 减益效果
+
+	  </script>
+	</body>
+</html>
+
+<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script>
+var popData = {
+  title: "游戏介绍",
+  content: `
+    <div>
+			<p>1,本游戏只能在PC上运行，没有做移动端处理</p>
+			<p>2,方向键控制英雄机移动</p>
+			<p>3,空格键投放鱼雷，获得掉落的鱼雷会显示在右下角</p>
+			<p>4,不同等级的敌机，打死需要的攻击次数不同</p>
+			<p>5,BUFF同时只能拥有一个，在身上已有BUFF时，不会掉落其它BUFF</p>
+			<p>6,鱼雷也是BUFF之一，所以看到右下角有鱼雷，在合适的时机用掉</p>
+			<p>7,加速子弹的头像并不是我</p>
+    </div>
+  `
+} 
+$('<div id="pops">').load('/html/pops.html').appendTo('body');
+</script>
