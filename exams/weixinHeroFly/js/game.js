@@ -115,7 +115,7 @@ function drawEnemy(){
     enemyArr[i].draw(enemyArr[i].img,enemyArr[i].posX*enemyArr[i].w,0,enemyArr[i].w,enemyArr[i].h,enemyArr[i].x,enemyArr[i].y,enemyArr[i].w,enemyArr[i].h);
     if( isCrash( enemyArr[i], heroFly ) ){
       audios.gameover.play();
-      gameover.innerHTML = '<div><p>游戏结束</p><p>你的分数：'+scores+'</p></div>';
+      gameover.innerHTML = '<div><p>游戏结束</p><p>你的分数：'+scores+'</p><p><button onclick="init()">重玩</button></p></div>';
       gameover.style.display = 'block';
       audios.bgsound.pause();
       isOver = true;
@@ -227,15 +227,19 @@ function clearEnemy(){
   buff = null;
 }
 
+function init () {
+  location.reload();
+}
+
 function gameStart(){
   var bgImg = images.background;
   //从已经加载的资源中取得背景图片
   count ++;
   //辅助变量，利用该变量可以控制游戏节奏
-cvs.clearRect(0,0,canvas.width,canvas.height);
-cvs.beginPath();
-cvs.drawImage(bgImg,0,bgOffsetY);
-cvs.drawImage(bgImg,0,-canvas.height + bgOffsetY);
+  cvs.clearRect(0,0,canvas.width,canvas.height);
+  cvs.beginPath();
+  cvs.drawImage(bgImg,0,bgOffsetY);
+  cvs.drawImage(bgImg,0,-canvas.height + bgOffsetY);
   bgOffsetY += 2;//控制背景滚动的频率。
   if(bgOffsetY>canvas.height) bgOffsetY = 0;
   //背景图片超出画布就拉回到原点，重新开始滚动
@@ -271,7 +275,7 @@ cvs.drawImage(bgImg,0,-canvas.height + bgOffsetY);
       break;
   }
   
-heroFly.draw(images.heroFly,heroPos*66,0,heroFly.w,heroFly.h,heroFly.x,heroFly.y,heroFly.w,heroFly.h);
+  heroFly.draw(images.heroFly,heroPos*66,0,heroFly.w,heroFly.h,heroFly.x,heroFly.y,heroFly.w,heroFly.h);
   //绘制英雄机到画布中
   heroPos += 1;
   heroPos %= 2;

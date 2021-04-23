@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+		  #wrap {
+		    box-shadow: 0 0 20px #333;
+		    margin: 20px auto 0;
+		    width: 320px; height: 568px;
+		    position: relative;
+		  }
+		  #loading,#gameover {
+		    position: absolute;
+		    width: 100%; height: 100%;
+		    background: rgba(128,128,128,0.5);
+		    left: 0; top: 0;
+		    text-align: center;
+		  }
+		  #loading img {
+		    margin-top: 200px;
+		    margin-bottom: 20px;
+		  }
+		  #gameover { display: none; }
+		  #gameover p:first-child {
+		    margin-top: 200px;
+		  }
+		  #gameover p {
+		    font-size: 30px;
+		  }
+		</style>
+	</head>
+	<body>
+	  <div id="wrap">
+      <canvas id="cvs" width="320" height="568"></canvas>
+      <div id="loading">
+        <img src="img/loading.gif"/><br/>
+        <span>正在加载...</span>
+      </div>
+      <div id="gameover">
+        <p>游戏结束</p>
+      </div>
+	  </div>
+
+    <script src="js/sources.js"></script>
+    <script src="js/game.js"></script>
+	  <script>
+	    var canvas = document.getElementById('cvs');
+	    var loading = document.getElementById('loading');
+	    var gameover = document.getElementById('gameover');
+	    var cvs = canvas.getContext('2d');
+	    var raf = null, audios = {}, images = {};
+	    var i = 0; len = audio_sources.length;
+	    var bgOffsetY = 0,isOver = false;
+	    var heroFly = new Factory(30,460,66,82,cvs);
+	    var bulletArr = [], bullet_type = 0, bullet_speed = 8;
+	    var heroPos = 0, count = 0,heroSpeed = 5;
+	    var enemyArr = [], key = 0;//2 4 8 16
+      var bomb = null, buff = null, scores = 0;
+	    var json = {
+	      '37': 2, '38': 4, '39': 8, '40': 16
+	    }
+
+      loadAudios(function(){
+        i = 0; len = image_sources.length;
+        loadImages(function(){
+          audios.bgsound.loop = true;
+          audios.bgsound.play();
+          alert("资源加载完成，按方向键开始游戏");
+        });
+      });
+      
+      document.startGame = 1;
+      document.onkeydown = function(ev){
+        var code = ev.keyCode;
+        if(code!=37&&code!=38&&code!=39&&code!=40)return;
+        if(!this[code] ) key += json[code];
+        this[code] = true;
+        this.startGame && gameStart();
+        this.startGame = 0;
+      };
+      
+      document.onkeyup = function(ev){
+        var code = ev.keyCode;
+        this[code] = false;
+        if(code!=37&&code!=38&&code!=39&&code!=40)return;
+        key -= json[code];
+      };
+	    
+	    function gameStart(){
+        var bgImg = images.background;
+        count ++;
+        cvs.beginPath();
+        cvs.drawImage(bgImg,0,bgOffsetY);
+        cvs.drawImage(bgImg,0,-canvas.height + bgOffsetY);
+        bgOffsetY += 2;
+        if(bgOffsetY>canvas.height) bgOffsetY = 0;
+
+        switch(key){
+          case 2:
+            heroFly.x -= heroSpeed;
+            if( heroFly.x < 0 ) heroFly.x = 0;
+            break;
+          case 4:
+            heroFly.y -= heroSpeed;
+            if(heroFly.y<0) heroFly.y = 0;
+            break;
+          case 8:
+            heroFly.x += heroSpeed;
+            if( heroFly.x > canvas.width - heroFly.w ) heroFly.x = canvas.width - heroFly.w;
+            break;
+          case 16:
+            heroFly.y += heroSpeed;
+            if(heroFly.y > canvas.height - heroFly.h ) heroFly.y = canvas.height - heroFly.h;
+            break;
+        }
+        
+        heroFly.draw(images.heroFly,heroPos*66,0,heroFly.w,heroFly.h,heroFly.x,heroFly.y,heroFly.w,heroFly.h);
+        heroPos += 1;
+        heroPos %= 2;
+        
+        if( count % bullet_speed == 0 )createBullet();
+        drawBullet();
+        
+        if( count % 30 == 0 ) createEnemy();
+        drawEnemy();
+        
+        loading.style.display = 'none';	      
+	      if(!isOver) window.requestAnimationFrame(gameStart);
+	    }
+      
+      setTimeout(function(){
+        bullet_type = 1;
+        setTimeout(function(){
+          bullet_type = 0;
+        },10000);
+      },5000);
+      
+      /*
+      function createEnemy(){
+        var enemy,img,x,y,w,y,num = getRand(0,100),arrW = [38,46,110];
+        img = images['enemy'+(num+1)];
+        w = arrW[num];
+        h = img.height;
+        x = getRand(w,canvas.width-w,true);
+        y = -h;
+        enemy = new Factory(x,y,w,h,cvs);
+        enemy.img = img;
+        enemy.sound = audios['enemy'+(num+1)];
+        enemy.life = 3*num;
+        enemy.posX = 0;
+        enemy.length = img.width / w;
+        enemy.speed = getRand(3,6,true) - Math.floor(1.5*num);
+//              console.log(x,y,w,h,num,img);
+        enemyArr.push(enemy);
+      }
+      function drawEnemy(){
+        var sound;
+        for(var i=0; i<enemyArr.length; i++){
+          if( enemyArr[i].die ){
+            enemyArr[i].posX ++;
+          }else{
+            enemyArr[i].y += enemyArr[i].speed;
+          }
+          if( enemyArr[i].posX == enemyArr[i].length || enemyArr[i].y > canvas.height ){
+            sound = enemyArr[i].sound.cloneNode();
+            sound.play();
+            enemyArr.splice(i,1);
+            continue;
+          }          
+          enemyArr[i].draw(enemyArr[i].img,enemyArr[i].posX*enemyArr[i].w,0,enemyArr[i].w,enemyArr[i].h,enemyArr[i].x,enemyArr[i].y,enemyArr[i].w,enemyArr[i].h);
+          if( isCrash( enemyArr[i], heroFly ) ){
+            audios.gameover.play();
+            gameover.style.display = 'block';
+            audios.bgsound.pause();
+            isOver = true;
+          }
+        }
+      }
+
+      function drawBullet(){
+        for(var i=0; i<bulletArr.length; i++){
+          bulletArr[i].y -= 7;
+          if(bullet_type == 1 ){
+            bulletArr[i].draw(images.doubleBullet,bulletArr[i].x,bulletArr[i].y);
+          }else{
+            bulletArr[i].draw(images.singleBullet,bulletArr[i].x,bulletArr[i].y);            
+          }
+          if( checkEnemyDie(bulletArr[i]) || bulletArr[i].y < 0 ){
+            bulletArr.splice(i,1);
+            i --;
+          }
+        }
+      }
+      
+      function createBullet(){
+        var bullet,x,y,w,h = 14;
+        var sound = audios.bullet.cloneNode();
+        if( bullet_type == 1 ){
+          w = images.doubleBullet.width;
+        }else{
+          w = images.singleBullet.width;
+        }
+        x = heroFly.x + (heroFly.w-w) / 2;
+        y = heroFly.y - h;
+        bullet = new Factory(x,y,w,h,cvs);
+        bulletArr.push( bullet );
+        sound.play();
+        sound = null;
+      }
+      
+      function checkEnemyDie(obj){
+        for(var i=0; i<enemyArr.length; i++){
+          if( isCrash(enemyArr[i],obj) ){
+            enemyArr[i].life -= bullet_type+1;
+            obj.die = true;
+            if( enemyArr[i].life <= 0 ) enemyArr[i].die = true;
+            return true;
+          }
+        }
+        return false;
+      }
+      
+      function checkHeroDie(){
+        for(var i=0; i<enemyArr.length; i++){
+          if( isCrash(heroFly,enemyArr[i]) ){
+            heroFly.die = true;
+          }
+        }          
+      }
+      */  
+
+	  </script>
+	</body>
+</html>
